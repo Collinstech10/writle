@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Someone has something special for you...</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* --- Reset & Base --- */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent-color, #c0392b);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .hidden { display: none !important; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      --accent-color: #c0392b;
+      --text-primary: #2c2416;
+      --text-secondary: #7a6f5f;
+      --text-muted: #a89f8f;
+      --surface: #ffffff;
+      --surface-warm: #fefdfb;
+      --border: #ede4d8;
+    }
+
+    /* --- Reveal Screen --- */
+    .reveal-screen {
+      text-align: center;
+      padding: 60px 24px;
+      max-width: 480px;
+      width: 100%;
+      animation: fadeIn 1s ease;
+    }
+
+    .reveal-envelope {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, rgba(192,57,43,0.08), rgba(212,165,116,0.1));
+      border-radius: 50%;
+      margin-bottom: 32px;
+      cursor: default;
+      position: relative;
+    }
+
+    .reveal-envelope-icon {
+      font-size: 3rem;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .reveal-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.4rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .reveal-subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .btn-reveal {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 44px;
+      background: var(--accent-color, #c0392b);
+      color: white;
+      border: none;
+      border-radius: 100px;
+      font-family: 'Inter', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 25px rgba(192, 57, 43, 0.25);
+    }
+
+    .btn-reveal:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 35px rgba(192, 57, 43, 0.35);
+    }
+
+    .reveal-petals {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .reveal-petal {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent-color, #c0392b);
+      border-radius: 50% 0 50% 0;
+      opacity: 0;
+      animation: petalFloat 8s linear infinite;
+    }
+
+    @keyframes petalFloat {
+      0% {
+        transform: translateY(-20px) rotate(0deg) translateX(0);
+        opacity: 0;
+      }
+      10% { opacity: 0.12; }
+      90% { opacity: 0.12; }
+      100% {
+        transform: translateY(100vh) rotate(540deg) translateX(60px);
+        opacity: 0;
+      }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- Message Screen --- */
+    .message-screen {
+      width: 100%;
+      max-width: 720px;
+      animation: messageReveal 0.8s ease;
+    }
+
+    @keyframes messageReveal {
+      from { opacity: 0; transform: scale(0.95) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .message-container {
+      background: var(--surface);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    .message-header {
+      padding: 48px 36px 32px;
+      text-align: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .message-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.2;
+      background: radial-gradient(circle at 50% 30%, rgba(255,255,255,0.3), transparent 70%);
+    }
+
+    .message-header-icon {
+      font-size: 3.5rem;
+      margin-bottom: 14px;
+      display: inline-block;
+      position: relative;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .message-header-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      position: relative;
+      letter-spacing: -0.01em;
+    }
+
+    .message-header-recipient {
+      font-size: 1.05rem;
+      opacity: 0.85;
+      font-style: italic;
+      position: relative;
+    }
+
+    .message-body {
+      padding: 36px;
+    }
+
+    .message-quote-box {
+      background: var(--surface-warm);
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      border: 1px solid var(--border);
+      margin-bottom: 28px;
+    }
+
+    .message-quote-box::before {
+      content: '\201C';
+      position: absolute;
+      top: 8px;
+      left: 20px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 5rem;
+      color: rgba(192, 57, 43, 0.07);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    .message-text {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.3rem;
+      line-height: 1.8;
+      color: var(--text-primary);
+      position: relative;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .message-sender {
+      text-align: right;
+      margin-top: 18px;
+      font-style: italic;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.15rem;
+    }
+
+    .message-sender:empty {
+      display: none;
+    }
+
+    .message-media {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+    }
+
+    .message-media-item {
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      aspect-ratio: 4/3;
+      transition: transform 0.3s ease;
+    }
+
+    .message-media-item:hover {
+      transform: scale(1.02);
+    }
+
+    .message-media-item img,
+    .message-media-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .message-footer {
+      text-align: center;
+      padding: 20px 36px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .message-footer a {
+      color: var(--accent-color, #c0392b);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .message-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* --- Loading & Error --- */
+    .loading-screen {
+      text-align: center;
+      padding: 80px 24px;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent-color, #c0392b);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .error-screen {
+      text-align: center;
+      padding: 80px 24px;
+    }
+
+    .error-screen h2 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2rem;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .error-screen p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+
+    .error-screen a {
+      color: var(--accent-color, #c0392b);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 600px) {
+      .message-header {
+        padding: 36px 24px 24px;
+      }
+
+      .message-header-title {
+        font-size: 1.6rem;
+      }
+
+      .message-body {
+        padding: 24px;
+      }
+
+      .message-quote-box {
+        padding: 24px;
+      }
+
+      .message-text {
+        font-size: 1.1rem;
+      }
+
+      .message-media {
+        grid-template-columns: 1fr;
+      }
+
+      .message-footer {
+        padding: 16px 24px;
+        font-size: 0.82rem;
+      }
+
+      .reveal-title {
+        font-size: 1.9rem;
+      }
+    }
+
+    /* --- Reduced Motion --- */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- REVEAL SCREEN -->
+  <div class="reveal-screen" id="revealScreen">
+    <div class="reveal-petals" id="revealPetals"></div>
+    <div class="reveal-envelope">
+      <span class="reveal-envelope-icon">💌</span>
+    </div>
+    <h1 class="reveal-title">Someone has something<br>special for you...</h1>
+    <p class="reveal-subtitle">A heartfelt message is waiting.<br>Ready to open it?</p>
+    <button class="btn-reveal" id="revealBtn" aria-label="Open your special message">
+      Open Message
+    </button>
+  </div>
+
+  <!-- MESSAGE SCREEN -->
+  <div class="message-screen hidden" id="messageScreen">
+    <div class="message-container" id="messageContainer">
+      <div class="loading-screen hidden" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Loading your special message...</p>
+      </div>
+      <div class="error-screen hidden" id="errorScreen">
+        <h2>Message Not Found</h2>
+        <p>This message may have expired or the link is incorrect.</p>
+        <a href="/">Create your own message</a>
+      </div>
+      <div id="messageContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const templateId = window.location.pathname.split('/').pop();
+
+    // --- Petals for reveal screen ---
+    (function createRevealPetals() {
+      const container = document.getElementById('revealPetals');
+      if (!container) return;
+      for (let i = 0; i < 14; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'reveal-petal';
+        petal.style.left = Math.random() * 100 + '%';
+        petal.style.animationDuration = (7 + Math.random() * 12) + 's';
+        petal.style.animationDelay = (Math.random() * 8) + 's';
+        petal.style.width = (6 + Math.random() * 8) + 'px';
+        petal.style.height = (6 + Math.random() * 8) + 'px';
+        container.appendChild(petal);
+      }
+    })();
+
+    // --- Reveal Interaction ---
+    document.getElementById('revealBtn').addEventListener('click', async () => {
+      const revealScreen = document.getElementById('revealScreen');
+      const messageScreen = document.getElementById('messageScreen');
+
+      revealScreen.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      revealScreen.style.opacity = '0';
+      revealScreen.style.transform = 'scale(0.95)';
+
+      setTimeout(() => {
+        revealScreen.classList.add('hidden');
+        messageScreen.classList.remove('hidden');
+        loadTemplate();
+      }, 500);
+    });
+
+    // --- Load Template ---
+    async function loadTemplate() {
+      const loadingScreen = document.getElementById('loadingScreen');
+      const errorScreen = document.getElementById('errorScreen');
+      const messageContent = document.getElementById('messageContent');
+
+      loadingScreen.classList.remove('hidden');
+      errorScreen.classList.add('hidden');
+      messageContent.classList.add('hidden');
+
+      try {
+        const response = await fetch(`/api/template/${templateId}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error);
+        }
+
+        const template = data.template;
+        const config = template.templateConfig;
+
+        // Template-specific theming
+        const themes = {
+          'marry-me': {
+            gradient: 'linear-gradient(135deg, #1a0a2e 0%, #2d1050 50%, #6b3a8a 100%)',
+            accent: '#a78bfa'
+          },
+          'sorry': {
+            gradient: 'linear-gradient(135deg, #dce8f5 0%, #b8d4f0 100%)',
+            accent: '#5b8ab5'
+          },
+          'love': {
+            gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%)',
+            accent: '#e91e63'
+          },
+          'will-you-date': {
+            gradient: 'linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e8dff0 100%)',
+            accent: '#ec407a'
+          },
+          'happy-anniversary': {
+            gradient: 'linear-gradient(135deg, #fff8e1 0%, #ffe0b2 50%, #ffcc80 100%)',
+            accent: '#f57c00'
+          },
+          'just-for-you': {
+            gradient: 'linear-gradient(135deg, #f3e5f5 0%, #ede7f6 50%, #d1c4e9 100%)',
+            accent: '#7c4dff'
+          }
+        };
+
+        const theme = themes[template.type] || themes['just-for-you'];
+        const personalities = {
+          'marry-me': '💍',
+          'sorry': '😔',
+          'love': '❤️',
+          'will-you-date': '💕',
+          'happy-anniversary': '🎉',
+          'just-for-you': '✨'
+        };
+
+        const icon = personalities[template.type] || '✨';
+
+        document.body.style.setProperty('--accent-color', theme.accent);
+
+        let mediaHtml = '';
+        if (template.media && template.media.length > 0) {
+          mediaHtml = `<div class="message-media">
+            ${template.media.map(file => {
+              if (file.type === 'image') {
+                return `<div class="message-media-item"><img src="${file.url}" alt="Shared photo" loading="lazy"></div>`;
+              } else if (file.type === 'video') {
+                return `<div class="message-media-item"><video src="${file.url}" controls preload="metadata"></video></div>`;
+              }
+              return '';
+            }).join('')}
+          </div>`;
+        }
+
+        const recipientDisplay = template.recipientName
+          ? `Dear ${escapeHtml(template.recipientName)}`
+          : 'A Special Message';
+
+        const senderDisplay = template.senderName
+          ? `— ${escapeHtml(template.senderName)}`
+          : '';
+
+        messageContent.innerHTML = `
+          <div class="message-container">
+            <div class="message-header" style="background: ${theme.gradient}">
+              <div class="message-header-icon">${icon}</div>
+              <h1 class="message-header-title">${escapeHtml(config.name)}</h1>
+              <p class="message-header-recipient">${escapeHtml(recipientDisplay)}</p>
+            </div>
+            <div class="message-body">
+              <div class="message-quote-box">
+                <p class="message-text">${escapeHtml(template.message)}</p>
+                ${senderDisplay ? `<div class="message-sender">${senderDisplay}</div>` : ''}
+              </div>
+              ${mediaHtml}
+            </div>
+            <div class="message-footer">
+              Made with <a href="/">Writele</a>
+            </div>
+          </div>
+        `;
+
+        loadingScreen.classList.add('hidden');
+        messageContent.classList.remove('hidden');
+
+      } catch (error) {
+        console.error('Error loading template:', error);
+        loadingScreen.classList.add('hidden');
+        errorScreen.classList.remove('hidden');
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

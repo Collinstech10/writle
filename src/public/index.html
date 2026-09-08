@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writele — Say It With Love</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-logo">
+        <span class="nav-logo-mark">W</span>
+        <span class="nav-logo-text">Writele</span>
+      </a>
+      <div class="nav-themes" id="navThemes">
+        <span class="nav-themes-label">Theme</span>
+        <div class="theme-dots">
+          <button class="theme-dot active" data-theme="romantic" style="--dot-color:#c0392b" aria-label="Romantic theme"></button>
+          <button class="theme-dot" data-theme="midnight" style="--dot-color:#4a6cf7" aria-label="Midnight theme"></button>
+          <button class="theme-dot" data-theme="soft" style="--dot-color:#e888b7" aria-label="Soft theme"></button>
+          <button class="theme-dot" data-theme="luxury" style="--dot-color:#c9a96e" aria-label="Luxury theme"></button>
+          <button class="theme-dot" data-theme="rose" style="--dot-color:#e91e63" aria-label="Rose theme"></button>
+          <button class="theme-dot" data-theme="darklove" style="--dot-color:#6c1d45" aria-label="Dark Love theme"></button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+      <div class="hero-content">
+        <div class="hero-badge">✨ Share Your Feelings</div>
+        <h1 class="hero-title">Say it with<br><span class="hero-accent">Writele</span></h1>
+        <p class="hero-subtitle">Create a beautifully crafted message for someone special.<br>Choose a template, write your heart out, and share.</p>
+        <div class="hero-actions">
+          <button class="btn-hero-primary" id="heroCreateBtn" onclick="document.getElementById('createSection').scrollIntoView({behavior:'smooth',block:'start'})">
+            Create a Message
+          </button>
+          <button class="btn-hero-secondary" onclick="document.getElementById('templatesSection').scrollIntoView({behavior:'smooth',block:'start'})">
+            Explore Templates
+          </button>
+        </div>
+      </div>
+      <div class="hero-petals" id="heroPetals"></div>
+    </section>
+
+    <!-- Template Selection -->
+    <section class="section templates-section" id="templatesSection">
+      <div class="section-inner">
+        <div class="section-header">
+          <h2 class="section-title">Choose a <span class="section-title-accent">Template</span></h2>
+          <p class="section-subtitle">Select the perfect way to express your feelings</p>
+        </div>
+        <div class="template-grid" id="templateGrid"></div>
+      </div>
+    </section>
+
+    <!-- Creator Section -->
+    <section class="section creator-section" id="createSection">
+      <div class="section-inner">
+        <div class="creator-layout">
+
+          <!-- Form Panel -->
+          <div class="creator-form-panel" id="creatorPanel">
+            <div class="form-placeholder" id="formPlaceholder">
+              <div class="form-placeholder-icon">💌</div>
+              <p>Select a template above to start crafting your message</p>
+            </div>
+
+            <div class="form-container hidden" id="creationForm">
+              <div class="form-header">
+                <span class="form-header-icon" id="selectedIcon"></span>
+                <h2 class="form-header-title" id="selectedTemplateName"></h2>
+              </div>
+
+              <form id="messageForm">
+                <div class="form-steps">
+                  <div class="form-step active" data-step="1">
+                    <div class="step-label">Step 1</div>
+                    <div class="step-title">Personalize</div>
+                    <div class="step-fields">
+                      <div class="form-group">
+                        <label for="recipientName">Their Name</label>
+                        <input type="text" id="recipientName" name="recipientName" placeholder="e.g. My Dearest Sarah" autocomplete="off">
+                      </div>
+                      <div class="form-group">
+                        <label for="senderName">Your Name</label>
+                        <input type="text" id="senderName" name="senderName" placeholder="e.g. John" autocomplete="off">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-step" data-step="2">
+                    <div class="step-label">Step 2</div>
+                    <div class="step-title">Write Your Message</div>
+                    <div class="step-fields">
+                      <div class="form-group">
+                        <label for="message">Your Message <span class="required">*</span></label>
+                        <textarea id="message" name="message" rows="6" placeholder="Pour your heart out..." required></textarea>
+                        <div class="char-count"><span id="charCount">0</span> characters</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-step" data-step="3">
+                    <div class="step-label">Step 3</div>
+                    <div class="step-title">Add Media</div>
+                    <div class="step-fields">
+                      <div class="form-group">
+                        <label>Photos & Videos <span class="optional">(optional)</span></label>
+                        <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Upload photos and videos">
+                          <div class="upload-area-inner">
+                            <div class="upload-icon">📷</div>
+                            <p class="upload-primary">Drag and drop files here</p>
+                            <p class="upload-secondary">or click to browse</p>
+                            <p class="upload-hint">JPEG, PNG, GIF, MP4, WebM — max 10 files, 50MB each</p>
+                          </div>
+                          <input type="file" id="mediaInput" name="media" multiple accept="image/*,video/*" class="hidden" aria-hidden="true">
+                        </div>
+                        <div class="file-preview" id="filePreview" aria-live="polite"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-nav">
+                  <button type="button" class="btn-form-prev hidden" id="prevStepBtn">← Back</button>
+                  <div class="form-nav-spacer"></div>
+                  <button type="button" class="btn-form-next" id="nextStepBtn">Next →</button>
+                  <button type="submit" class="btn-form-submit hidden" id="submitBtn">Create Message ✨</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Preview Panel -->
+          <div class="creator-preview-panel" id="previewPanel">
+            <div class="preview-sticky">
+              <div class="preview-label">Live Preview</div>
+              <div class="preview-frame" id="previewFrame">
+                <div class="preview-placeholder">
+                  <div class="preview-placeholder-icon">💌</div>
+                  <p>Your message preview will appear here</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Success Section -->
+    <section class="section success-section hidden" id="successSection">
+      <div class="section-inner">
+        <div class="success-card">
+          <div class="success-animation" id="successAnimation">
+            <div class="success-icon-wrap">
+              <span class="success-icon">🎉</span>
+            </div>
+          </div>
+          <h2 class="success-title">Your Message is Ready</h2>
+          <p class="success-subtitle">Share this link with your special someone</p>
+          <div class="share-link-container">
+            <input type="text" id="shareLink" readonly aria-label="Shareable link">
+            <button class="btn-copy" id="copyBtn">Copy</button>
+          </div>
+          <div class="share-actions">
+            <button class="btn-share-whatsapp" id="whatsappBtn" aria-label="Share on WhatsApp">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Share on WhatsApp
+            </button>
+            <button class="btn-share-native" id="nativeShareBtn" aria-label="Share">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+              Share
+            </button>
+            <button class="btn-create-another" id="createAnotherBtn">Create Another</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Crafted with care · Made with <a href="/">Writele</a></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
