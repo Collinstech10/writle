@@ -3,38 +3,33 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
+// Resolve public directory — in Vercel serverless functions the included
+// files land under <root>/src/public, whereas locally __dirname is src/
+const candidatePaths = [
+  path.join(__dirname, 'src', 'public'),
+  path.join(__dirname, 'public')
+];
+const PUBLIC_DIR = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
 
-const ALLOWED_MIME_TYPES = /jpeg|jpg|png|gif|mp4|webm|ogg|mov|avi|wmv|flv|mkv/;
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = crypto.randomUUID() + path.extname(file.originalname);
-    cb(null, uniqueName);
-  }
-});
+const ALLOWED_EXTENSIONS = [
+  '.jpeg', '.jpg', '.png', '.gif',
+  '.mp4', '.webm', '.ogg', '.mov', '.avi', '.wmv', '.flv', '.mkv'
+];
 
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
-    const extname = ALLOWED_MIME_TYPES.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = ALLOWED_MIME_TYPES.test(file.mimetype);
-    if (extname && mimetype) {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ALLOWED_EXTENSIONS.includes(ext)) {
       return cb(null, true);
-    } else {
-      cb(new Error('Only image and video files are allowed'));
     }
+    cb(new Error('Only image and video files are allowed'));
   }
 });
 
@@ -77,19 +72,32 @@ const templateTypes = {
   }
 };
 
-const templates = new Map();
-
 const isUuid = (id) => /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(UPLOAD_DIR));
+app.use(express.static(PUBLIC_DIR));
+
+// Serve previously uploaded media from KV
+app.get('/uploads/:filename', async (req, res) => {
+  try {
+    const fileRecord = await kv.get(`file:${req.params.filename}`);
+    if (!fileRecord) {
+      return res.status(404).send('File not found');
+    }
+    res.set('Content-Type', fileRecord.contentType);
+    res.set('Content-Length', fileRecord.size);
+    res.send(Buffer.from(fileRecord.data, 'base64'));
+  } catch (err) {
+    console.error('Error serving file:', err);
+    res.status(500).send('Error retrieving file');
+  }
+});
 
 app.get('/api/template-types', (req, res) => {
   res.json(templateTypes);
 });
 
-app.post('/api/create', upload.array('media', 10), (req, res) => {
+app.post('/api/create', upload.array('media', 10), async (req, res) => {
   try {
     const { type, message, senderName, recipientName } = req.body;
 
@@ -104,11 +112,18 @@ app.post('/api/create', upload.array('media', 10), (req, res) => {
     const id = crypto.randomUUID();
 
     const mediaFiles = req.files ? req.files.map(file => {
-      const relativePath = path.relative(__dirname, file.path).replace(/\\/g, '/');
+      const filename = crypto.randomUUID() + path.extname(file.originalname);
+      // Persist uploaded file to KV as base64
+      kv.set(`file:${filename}`, {
+        data: file.buffer.toString('base64'),
+        contentType: file.mimetype,
+        size: file.size,
+        originalName: file.originalname
+      });
       return {
-        url: '/' + relativePath,
+        url: `/uploads/${filename}`,
         type: file.mimetype.startsWith('image/') ? 'image' : 'video',
-        filename: file.filename
+        filename: filename
       };
     }) : [];
 
@@ -123,7 +138,7 @@ app.post('/api/create', upload.array('media', 10), (req, res) => {
       templateConfig: templateTypes[type]
     };
 
-    templates.set(id, template);
+    await kv.set(`template:${id}`, template);
 
     res.json({
       success: true,
@@ -137,34 +152,45 @@ app.post('/api/create', upload.array('media', 10), (req, res) => {
   }
 });
 
-app.get('/api/template/:id', (req, res) => {
-  const template = templates.get(req.params.id);
-  if (!template) {
-    return res.status(404).json({ success: false, error: 'Template not found' });
+app.get('/api/template/:id', async (req, res) => {
+  try {
+    const template = await kv.get(`template:${req.params.id}`);
+    if (!template) {
+      return res.status(404).json({ success: false, error: 'Template not found' });
+    }
+    res.json({ success: true, template });
+  } catch (error) {
+    console.error('Error fetching template:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
-  res.json({ success: true, template });
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 app.get('/:id', (req, res) => {
   if (!isUuid(req.params.id)) {
-    return res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
+    return res.status(404).sendFile(path.join(PUBLIC_DIR, 'index.html'));
   }
-  res.sendFile(path.join(__dirname, 'public', 'view.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'view.html'));
 });
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  if (req.xhr || req.headers.accept?.includes('application/json')) {
+  if (req.headers.accept?.includes('application/json') || req.xhr) {
     res.status(500).json({ success: false, error: 'Something went wrong!' });
   } else {
     res.status(500).send('Something went wrong!');
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Export the Express app for @vercel/node
+module.exports = app;
+
+// Only start a local server when running outside Vercel
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
