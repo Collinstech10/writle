@@ -8,7 +8,28 @@ let selectedFiles = [];
 let objectUrls = [];
 let templateTypes = {};
 let currentStep = 1;
-const totalSteps = 3;
+const totalSteps = 4;
+let pinMode = 'auto'; // 'auto' | 'custom'
+let currentShareUrl = '';
+let currentPin = '';
+
+// Local template metadata (previously served by /api/template-types).
+// Writele is frontend-only, so this now lives in the client.
+const TEMPLATE_TYPES = {
+  'marry-me': { name: 'Will You Marry Me?', theme: 'romantic', icon: '💍' },
+  'sorry': { name: 'I Am Sorry', theme: 'apology', icon: '😔' },
+  'love': { name: 'I Love You', theme: 'love', icon: '❤️' },
+  'will-you-date': { name: 'Will You Date Me?', theme: 'dating', icon: '💕' },
+  'happy-anniversary': { name: 'Happy Anniversary', theme: 'celebration', icon: '🎉' },
+  'just-for-you': { name: 'Special Message', theme: 'special', icon: '✨' }
+};
+
+// Sharing limits — everything lives inside the URL now, so media has to
+// stay small. Photos are auto-compressed; videos can't be embedded.
+const MAX_LINK_PHOTOS = 4;
+const PHOTO_MAX_DIMENSION = 1000;
+const PHOTO_JPEG_QUALITY = 0.65;
+const LINK_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 // --- Template Config (client-side personalities) ---
 const templateThemes = {
@@ -134,14 +155,9 @@ function createPetals() {
 // =============================================
 // TEMPLATE TYPES
 // =============================================
-async function loadTemplateTypes() {
-  try {
-    const response = await fetch('/api/template-types');
-    templateTypes = await response.json();
-    renderTemplateGrid();
-  } catch (error) {
-    console.error('Error loading template types:', error);
-  }
+function loadTemplateTypes() {
+  templateTypes = TEMPLATE_TYPES;
+  renderTemplateGrid();
 }
 
 function renderTemplateGrid() {
@@ -330,17 +346,53 @@ function setupButtonListeners() {
   const prevBtn = document.getElementById('prevStepBtn');
   const nextBtn = document.getElementById('nextStepBtn');
   const submitBtn = document.getElementById('submitBtn');
-  const copyBtn = document.getElementById('copyBtn');
   const createAnotherBtn = document.getElementById('createAnotherBtn');
   const whatsappBtn = document.getElementById('whatsappBtn');
   const nativeShareBtn = document.getElementById('nativeShareBtn');
 
   if (prevBtn) prevBtn.addEventListener('click', prevStep);
   if (nextBtn) nextBtn.addEventListener('click', nextStep);
-  if (copyBtn) copyBtn.addEventListener('click', copyLink);
   if (createAnotherBtn) createAnotherBtn.addEventListener('click', createAnother);
   if (whatsappBtn) whatsappBtn.addEventListener('click', shareWhatsApp);
   if (nativeShareBtn) nativeShareBtn.addEventListener('click', shareNative);
+
+  const copyLinkBtn = document.getElementById('copyLinkBtn');
+  const copyPinBtn = document.getElementById('copyPinBtn');
+  const copyDetailsBtn = document.getElementById('copyDetailsBtn');
+  if (copyLinkBtn) copyLinkBtn.addEventListener('click', copyLink);
+  if (copyPinBtn) copyPinBtn.addEventListener('click', copyPin);
+  if (copyDetailsBtn) copyDetailsBtn.addEventListener('click', copyDetails);
+
+  setupPinModeToggle();
+}
+
+// =============================================
+// PIN MODE TOGGLE (auto-generate vs custom)
+// =============================================
+function setupPinModeToggle() {
+  const buttons = document.querySelectorAll('.pin-mode-btn');
+  const customWrap = document.getElementById('customPinWrap');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+
+      pinMode = btn.dataset.mode;
+      if (customWrap) customWrap.classList.toggle('hidden', pinMode !== 'custom');
+    });
+  });
+
+  const customPinInput = document.getElementById('customPin');
+  if (customPinInput) {
+    customPinInput.addEventListener('input', () => {
+      customPinInput.value = customPinInput.value.replace(/\D/g, '').slice(0, 6);
+    });
+  }
 }
 
 // =============================================
@@ -542,48 +594,129 @@ async function handleFormSubmit(e) {
     return;
   }
 
-  const formData = new FormData();
-  formData.append('type', selectedTemplate);
-  formData.append('message', document.getElementById('message').value);
-  formData.append('senderName', document.getElementById('senderName').value);
-  formData.append('recipientName', document.getElementById('recipientName').value);
+  const message = document.getElementById('message').value.trim();
+  if (!message) {
+    showToast('Please write your message');
+    return;
+  }
 
-  selectedFiles.forEach(file => {
-    formData.append('media', file);
-  });
+  let pin;
+  if (pinMode === 'custom') {
+    const customPinInput = document.getElementById('customPin');
+    pin = (customPinInput ? customPinInput.value : '').trim();
+    if (!WritleCrypto.isValidPin(pin)) {
+      showToast('Your custom PIN must be exactly 6 digits');
+      return;
+    }
+  } else {
+    pin = WritleCrypto.generatePin();
+  }
 
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
   submitBtn.textContent = 'Creating...';
 
   try {
-    const response = await fetch('/api/create', {
-      method: 'POST',
-      body: formData
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      showSuccess(data.shareUrl);
-    } else {
-      showToast('Error: ' + data.error);
+    const videoCount = selectedFiles.filter(f => f.type.startsWith('video/')).length;
+    if (videoCount > 0) {
+      showToast('Videos stay in your preview only — they can\'t be added to the link');
     }
+
+    const media = await buildMediaPayload(selectedFiles);
+
+    const dataObj = {
+      type: selectedTemplate,
+      message,
+      senderName: document.getElementById('senderName').value.trim(),
+      recipientName: document.getElementById('recipientName').value.trim(),
+      media,
+      createdAt: new Date().toISOString()
+    };
+
+    const expiresAt = Date.now() + LINK_EXPIRY_MS;
+    const encoded = await WritleCrypto.encrypt(pin, dataObj, expiresAt);
+    const shareUrl = `${window.location.origin}/view.html#d=${encoded}`;
+
+    if (encoded.length > 400000) {
+      showToast('Your link is quite large — consider fewer photos for easier sharing');
+    }
+
+    showSuccess(shareUrl, pin, expiresAt);
   } catch (error) {
-    console.error('Error creating template:', error);
-    showToast('Failed to create message. Please try again.');
+    console.error('Error creating message:', error);
+    showToast('Failed to create your message. Please try again.');
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Create Message ✨';
   }
 }
 
+// Converts up to MAX_LINK_PHOTOS selected images into compressed, embeddable
+// base64 payloads. Videos are intentionally skipped — there is no server to
+// store them, and a raw video is far too large to live inside a URL.
+async function buildMediaPayload(files) {
+  const images = files.filter(f => f.type.startsWith('image/')).slice(0, MAX_LINK_PHOTOS);
+  const results = [];
+  for (const file of images) {
+    try {
+      const data = await compressImageToBase64(file, PHOTO_MAX_DIMENSION, PHOTO_JPEG_QUALITY);
+      results.push({ type: 'image', mime: 'image/jpeg', data });
+    } catch (err) {
+      console.error('Failed to process image', file.name, err);
+    }
+  }
+  return results;
+}
+
+function compressImageToBase64(file, maxDimension, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round(height * (maxDimension / width));
+          width = maxDimension;
+        } else {
+          width = Math.round(width * (maxDimension / height));
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      URL.revokeObjectURL(url);
+      resolve(dataUrl.split(',')[1]); // strip the data: prefix, keep base64 only
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not load image'));
+    };
+
+    img.src = url;
+  });
+}
+
 // =============================================
 // SUCCESS & SHARING
 // =============================================
-function showSuccess(shareUrl) {
-  const fullUrl = window.location.origin + shareUrl;
-  document.getElementById('shareLink').value = fullUrl;
+function showSuccess(shareUrl, pin, expiresAt) {
+  currentShareUrl = shareUrl;
+  currentPin = pin;
+
+  document.getElementById('shareLink').value = shareUrl;
+  document.getElementById('pinDisplayValue').textContent = pin;
+
+  const expiryNote = document.getElementById('expiryNote');
+  if (expiryNote) expiryNote.textContent = 'The link expires in 1 hour.';
 
   document.getElementById('creationForm').classList.add('hidden');
   document.getElementById('successSection').classList.remove('hidden');
@@ -605,57 +738,76 @@ function showSuccess(shareUrl) {
   }
 }
 
-function copyLink() {
-  const linkInput = document.getElementById('shareLink');
-  const url = linkInput.value;
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopySuccess();
-    }).catch(() => {
-      fallbackCopy();
-    });
-  } else {
-    fallbackCopy();
-  }
+function copyText(text) {
+  return new Promise((resolve) => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => resolve(true)).catch(() => resolve(fallbackCopyText(text)));
+    } else {
+      resolve(fallbackCopyText(text));
+    }
+  });
 }
 
-function fallbackCopy() {
-  const linkInput = document.getElementById('shareLink');
-  linkInput.select();
-  linkInput.setSelectionRange(0, 99999);
-
+function fallbackCopyText(text) {
+  const temp = document.createElement('textarea');
+  temp.value = text;
+  temp.style.position = 'fixed';
+  temp.style.opacity = '0';
+  document.body.appendChild(temp);
+  temp.focus();
+  temp.select();
+  let success = false;
   try {
-    const success = document.execCommand('copy');
-    if (success) setCopySuccess();
+    success = document.execCommand('copy');
   } catch (e) {
-    showToast('Please copy the link manually');
+    success = false;
   }
+  document.body.removeChild(temp);
+  return success;
 }
 
-function setCopySuccess() {
-  const btn = document.getElementById('copyBtn');
+function flashCopied(btn) {
+  if (!btn) return;
   const original = btn.textContent;
   btn.textContent = 'Copied!';
-  btn.style.background = '#27ae60';
+  btn.classList.add('copied');
   setTimeout(() => {
     btn.textContent = original;
-    btn.style.background = '';
+    btn.classList.remove('copied');
   }, 2000);
 }
 
+async function copyLink() {
+  const ok = await copyText(currentShareUrl);
+  if (ok) flashCopied(document.getElementById('copyLinkBtn'));
+  else showToast('Please copy the link manually');
+}
+
+async function copyPin() {
+  const ok = await copyText(currentPin);
+  if (ok) flashCopied(document.getElementById('copyPinBtn'));
+  else showToast('Please copy the PIN manually');
+}
+
+async function copyDetails() {
+  const details = `💌 I made something special for you on Writele.\n\nOpen your message:\n${currentShareUrl}\n\n🔐 PIN: ${currentPin}\n\n⏰ This link expires in 1 hour.`;
+  const ok = await copyText(details);
+  if (ok) flashCopied(document.getElementById('copyDetailsBtn'));
+  else showToast('Please copy the details manually');
+}
+
 function shareWhatsApp() {
-  const url = document.getElementById('shareLink').value;
-  const text = encodeURIComponent('I have a special message for you 💌 ' + url);
+  const text = encodeURIComponent(
+    `I have a special message for you 💌 I'll send you the PIN separately.\n\nOpen it here: ${currentShareUrl}`
+  );
   window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
 }
 
 function shareNative() {
-  const url = document.getElementById('shareLink').value;
   const data = {
     title: 'A special message for you',
-    text: 'Someone sent you a beautiful message on Writele',
-    url: url
+    text: 'Someone sent you a beautiful, PIN-protected message on Writele',
+    url: currentShareUrl
   };
 
   if (navigator.share) {
@@ -676,6 +828,17 @@ function resetForm() {
   revokeObjectUrls();
   updateFilePreview();
   selectedTemplate = null;
+  currentShareUrl = '';
+  currentPin = '';
+
+  pinMode = 'auto';
+  document.querySelectorAll('.pin-mode-btn').forEach(b => {
+    const isAuto = b.dataset.mode === 'auto';
+    b.classList.toggle('active', isAuto);
+    b.setAttribute('aria-selected', isAuto ? 'true' : 'false');
+  });
+  const customPinWrap = document.getElementById('customPinWrap');
+  if (customPinWrap) customPinWrap.classList.add('hidden');
 
   document.querySelectorAll('.template-card').forEach(card => {
     card.classList.remove('selected');

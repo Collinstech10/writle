@@ -37,16 +37,18 @@
       --border: #ede4d8;
     }
 
-    /* --- Reveal Screen --- */
-    .reveal-screen {
+    /* --- Shared screen shell --- */
+    .screen {
       text-align: center;
       padding: 60px 24px;
       max-width: 480px;
       width: 100%;
-      animation: fadeIn 1s ease;
+      animation: fadeIn 0.6s ease;
+      position: relative;
+      z-index: 1;
     }
 
-    .reveal-envelope {
+    .screen-envelope {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -55,33 +57,114 @@
       background: linear-gradient(135deg, rgba(192,57,43,0.08), rgba(212,165,116,0.1));
       border-radius: 50%;
       margin-bottom: 32px;
-      cursor: default;
       position: relative;
     }
 
-    .reveal-envelope-icon {
+    .screen-envelope-icon {
       font-size: 3rem;
       animation: float 3s ease-in-out infinite;
     }
 
-    .reveal-title {
+    .screen-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 12px;
       letter-spacing: -0.02em;
-      line-height: 1.2;
+      line-height: 1.25;
     }
 
-    .reveal-subtitle {
+    .screen-subtitle {
       font-size: 1rem;
       color: var(--text-secondary);
-      margin-bottom: 40px;
+      margin-bottom: 36px;
       line-height: 1.6;
     }
 
-    .btn-reveal {
+    .petals {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .petal {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: var(--accent-color, #c0392b);
+      border-radius: 50% 0 50% 0;
+      opacity: 0;
+      animation: petalFloat 8s linear infinite;
+    }
+
+    @keyframes petalFloat {
+      0% { transform: translateY(-20px) rotate(0deg) translateX(0); opacity: 0; }
+      10% { opacity: 0.12; }
+      90% { opacity: 0.12; }
+      100% { transform: translateY(100vh) rotate(540deg) translateX(60px); opacity: 0; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- PIN entry --- */
+    .pin-boxes {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .pin-box {
+      width: 46px;
+      height: 56px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .pin-box:focus {
+      outline: none;
+      border-color: var(--accent-color, #c0392b);
+      box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12);
+    }
+
+    .pin-boxes.shake {
+      animation: pinShake 0.4s ease;
+    }
+
+    @keyframes pinShake {
+      10%, 90% { transform: translateX(-2px); }
+      20%, 80% { transform: translateX(4px); }
+      30%, 50%, 70% { transform: translateX(-8px); }
+      40%, 60% { transform: translateX(8px); }
+    }
+
+    .pin-error {
+      color: var(--accent-color, #c0392b);
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 16px;
+      min-height: 1.3em;
+    }
+
+    .btn-unlock {
       display: inline-flex;
       align-items: center;
       gap: 10px;
@@ -98,50 +181,34 @@
       box-shadow: 0 6px 25px rgba(192, 57, 43, 0.25);
     }
 
-    .btn-reveal:hover {
+    .btn-unlock:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 35px rgba(192, 57, 43, 0.35);
     }
 
-    .reveal-petals {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
+    .btn-unlock:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
     }
 
-    .reveal-petal {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background: var(--accent-color, #c0392b);
-      border-radius: 50% 0 50% 0;
-      opacity: 0;
-      animation: petalFloat 8s linear infinite;
+    .countdown {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 28px;
+      font-variant-numeric: tabular-nums;
     }
 
-    @keyframes petalFloat {
-      0% {
-        transform: translateY(-20px) rotate(0deg) translateX(0);
-        opacity: 0;
-      }
-      10% { opacity: 0.12; }
-      90% { opacity: 0.12; }
-      100% {
-        transform: translateY(100vh) rotate(540deg) translateX(60px);
-        opacity: 0;
-      }
+    .countdown.low {
+      color: var(--accent-color, #c0392b);
+      font-weight: 600;
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .security-hint {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
     /* --- Message Screen --- */
@@ -149,6 +216,8 @@
       width: 100%;
       max-width: 720px;
       animation: messageReveal 0.8s ease;
+      position: relative;
+      z-index: 1;
     }
 
     @keyframes messageReveal {
@@ -243,7 +312,6 @@
       margin-top: 18px;
       font-style: italic;
       color: var(--text-secondary);
-      font-size: 1rem;
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 1.15rem;
     }
@@ -296,90 +364,17 @@
       text-decoration: underline;
     }
 
-    /* --- Loading & Error --- */
-    .loading-screen {
-      text-align: center;
-      padding: 80px 24px;
-    }
-
-    .loading-spinner {
-      display: inline-block;
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent-color, #c0392b);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 20px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      color: var(--text-secondary);
-      font-size: 1rem;
-    }
-
-    .error-screen {
-      text-align: center;
-      padding: 80px 24px;
-    }
-
-    .error-screen h2 {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 2rem;
-      color: var(--text-primary);
-      margin-bottom: 10px;
-    }
-
-    .error-screen p {
-      color: var(--text-secondary);
-      font-size: 1rem;
-      margin-bottom: 24px;
-    }
-
-    .error-screen a {
-      color: var(--accent-color, #c0392b);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
     /* --- Responsive --- */
     @media (max-width: 600px) {
-      .message-header {
-        padding: 36px 24px 24px;
-      }
-
-      .message-header-title {
-        font-size: 1.6rem;
-      }
-
-      .message-body {
-        padding: 24px;
-      }
-
-      .message-quote-box {
-        padding: 24px;
-      }
-
-      .message-text {
-        font-size: 1.1rem;
-      }
-
-      .message-media {
-        grid-template-columns: 1fr;
-      }
-
-      .message-footer {
-        padding: 16px 24px;
-        font-size: 0.82rem;
-      }
-
-      .reveal-title {
-        font-size: 1.9rem;
-      }
+      .message-header { padding: 36px 24px 24px; }
+      .message-header-title { font-size: 1.6rem; }
+      .message-body { padding: 24px; }
+      .message-quote-box { padding: 24px; }
+      .message-text { font-size: 1.1rem; }
+      .message-media { grid-template-columns: 1fr; }
+      .message-footer { padding: 16px 24px; font-size: 0.82rem; }
+      .screen-title { font-size: 1.8rem; }
+      .pin-box { width: 40px; height: 50px; font-size: 1.3rem; }
     }
 
     /* --- Reduced Motion --- */
@@ -394,45 +389,88 @@
 </head>
 <body>
 
-  <!-- REVEAL SCREEN -->
-  <div class="reveal-screen" id="revealScreen">
-    <div class="reveal-petals" id="revealPetals"></div>
-    <div class="reveal-envelope">
-      <span class="reveal-envelope-icon">💌</span>
+  <div class="petals" id="petals"></div>
+
+  <!-- UNLOCK SCREEN (PIN entry) -->
+  <div class="screen hidden" id="unlockScreen">
+    <div class="screen-envelope"><span class="screen-envelope-icon">💌</span></div>
+    <h1 class="screen-title">Someone has a special<br>message for you</h1>
+    <p class="screen-subtitle">This message is protected with a PIN.<br>Enter it below to open your letter.</p>
+
+    <div class="pin-boxes" id="pinBoxes" role="group" aria-label="Enter your 6-digit PIN">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN digit 1">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN digit 2">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN digit 3">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN digit 4">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN digit 5">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="PIN digit 6">
     </div>
-    <h1 class="reveal-title">Someone has something<br>special for you...</h1>
-    <p class="reveal-subtitle">A heartfelt message is waiting.<br>Ready to open it?</p>
-    <button class="btn-reveal" id="revealBtn" aria-label="Open your special message">
-      Open Message
-    </button>
+
+    <p class="pin-error" id="pinError" aria-live="polite"></p>
+
+    <button class="btn-unlock" id="unlockBtn">Unlock</button>
+
+    <p class="countdown" id="countdown" aria-live="polite"></p>
+    <p class="security-hint">🔒 Encrypted in your browser — a light privacy layer, not unbreakable security.</p>
+  </div>
+
+  <!-- EXPIRED SCREEN -->
+  <div class="screen hidden" id="expiredScreen">
+    <div class="screen-envelope"><span class="screen-envelope-icon">⏰</span></div>
+    <h1 class="screen-title">This message<br>has expired</h1>
+    <p class="screen-subtitle">This private Writele link was only available for 1 hour.<br>Ask the sender to create a new message link.</p>
+    <a class="btn-unlock" href="/index.html" style="text-decoration:none;">Create a Message</a>
+  </div>
+
+  <!-- OLD LINK SCREEN -->
+  <div class="screen hidden" id="oldLinkScreen">
+    <div class="screen-envelope"><span class="screen-envelope-icon">💌</span></div>
+    <h1 class="screen-title">This is an older<br>Writele link</h1>
+    <p class="screen-subtitle">Please ask the sender to create a new protected link — older links are no longer supported.</p>
+    <a class="btn-unlock" href="/index.html" style="text-decoration:none;">Create a Message</a>
+  </div>
+
+  <!-- INVALID LINK SCREEN -->
+  <div class="screen hidden" id="invalidScreen">
+    <div class="screen-envelope"><span class="screen-envelope-icon">💔</span></div>
+    <h1 class="screen-title">This link isn't<br>quite right</h1>
+    <p class="screen-subtitle">It looks incomplete or invalid. Double-check the link, or ask the sender to send it again.</p>
+    <a class="btn-unlock" href="/index.html" style="text-decoration:none;">Create a Message</a>
   </div>
 
   <!-- MESSAGE SCREEN -->
   <div class="message-screen hidden" id="messageScreen">
-    <div class="message-container" id="messageContainer">
-      <div class="loading-screen hidden" id="loadingScreen">
-        <div class="loading-spinner"></div>
-        <p class="loading-text">Loading your special message...</p>
-      </div>
-      <div class="error-screen hidden" id="errorScreen">
-        <h2>Message Not Found</h2>
-        <p>This message may have expired or the link is incorrect.</p>
-        <a href="/">Create your own message</a>
-      </div>
-      <div id="messageContent"></div>
-    </div>
+    <div class="message-container" id="messageContainer"></div>
   </div>
 
+  <script src="writle-crypto.js"></script>
   <script>
-    const templateId = window.location.pathname.split('/').pop();
+    // Template metadata mirrors the one used on index.html/script.js —
+    // Writele is frontend-only, so both sides share the same local lookup.
+    const THEMES = {
+      'marry-me': { gradient: 'linear-gradient(135deg, #1a0a2e 0%, #2d1050 50%, #6b3a8a 100%)', accent: '#a78bfa', icon: '💍', name: 'Will You Marry Me?' },
+      'sorry': { gradient: 'linear-gradient(135deg, #dce8f5 0%, #b8d4f0 100%)', accent: '#5b8ab5', icon: '😔', name: 'I Am Sorry' },
+      'love': { gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%)', accent: '#e91e63', icon: '❤️', name: 'I Love You' },
+      'will-you-date': { gradient: 'linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e8dff0 100%)', accent: '#ec407a', icon: '💕', name: 'Will You Date Me?' },
+      'happy-anniversary': { gradient: 'linear-gradient(135deg, #fff8e1 0%, #ffe0b2 50%, #ffcc80 100%)', accent: '#f57c00', icon: '🎉', name: 'Happy Anniversary' },
+      'just-for-you': { gradient: 'linear-gradient(135deg, #f3e5f5 0%, #ede7f6 50%, #d1c4e9 100%)', accent: '#7c4dff', icon: '✨', name: 'Special Message' }
+    };
 
-    // --- Petals for reveal screen ---
-    (function createRevealPetals() {
-      const container = document.getElementById('revealPetals');
+    let countdownTimer = null;
+    let currentPayload = null;
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function createPetals() {
+      const container = document.getElementById('petals');
       if (!container) return;
       for (let i = 0; i < 14; i++) {
         const petal = document.createElement('div');
-        petal.className = 'reveal-petal';
+        petal.className = 'petal';
         petal.style.left = Math.random() * 100 + '%';
         petal.style.animationDuration = (7 + Math.random() * 12) + 's';
         petal.style.animationDelay = (Math.random() * 8) + 's';
@@ -440,144 +478,208 @@
         petal.style.height = (6 + Math.random() * 8) + 'px';
         container.appendChild(petal);
       }
-    })();
+    }
 
-    // --- Reveal Interaction ---
-    document.getElementById('revealBtn').addEventListener('click', async () => {
-      const revealScreen = document.getElementById('revealScreen');
-      const messageScreen = document.getElementById('messageScreen');
+    function showScreen(id) {
+      ['unlockScreen', 'expiredScreen', 'oldLinkScreen', 'invalidScreen', 'messageScreen'].forEach(s => {
+        document.getElementById(s).classList.toggle('hidden', s !== id);
+      });
+    }
 
-      revealScreen.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-      revealScreen.style.opacity = '0';
-      revealScreen.style.transform = 'scale(0.95)';
+    // --- PIN box wiring: auto-focus, backspace nav, paste support ---
+    function setupPinBoxes() {
+      const boxes = Array.from(document.querySelectorAll('.pin-box'));
+      if (boxes.length === 0) return;
 
-      setTimeout(() => {
-        revealScreen.classList.add('hidden');
-        messageScreen.classList.remove('hidden');
-        loadTemplate();
-      }, 500);
-    });
+      boxes[0].focus();
 
-    // --- Load Template ---
-    async function loadTemplate() {
-      const loadingScreen = document.getElementById('loadingScreen');
-      const errorScreen = document.getElementById('errorScreen');
-      const messageContent = document.getElementById('messageContent');
+      boxes.forEach((box, index) => {
+        box.addEventListener('input', () => {
+          box.value = box.value.replace(/\D/g, '').slice(0, 1);
+          if (box.value && index < boxes.length - 1) {
+            boxes[index + 1].focus();
+          }
+          clearPinError();
+        });
 
-      loadingScreen.classList.remove('hidden');
-      errorScreen.classList.add('hidden');
-      messageContent.classList.add('hidden');
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !box.value && index > 0) {
+            boxes[index - 1].focus();
+          }
+          if (e.key === 'Enter') {
+            attemptUnlock();
+          }
+        });
+
+        box.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+          if (!pasted) return;
+          for (let i = 0; i < boxes.length; i++) {
+            boxes[i].value = pasted[i] || '';
+          }
+          const nextEmpty = boxes.findIndex(b => !b.value);
+          (nextEmpty === -1 ? boxes[boxes.length - 1] : boxes[nextEmpty]).focus();
+          clearPinError();
+        });
+      });
+    }
+
+    function getEnteredPin() {
+      return Array.from(document.querySelectorAll('.pin-box')).map(b => b.value).join('');
+    }
+
+    function clearPinError() {
+      document.getElementById('pinError').textContent = '';
+    }
+
+    function showPinError(message) {
+      document.getElementById('pinError').textContent = message;
+      const boxesWrap = document.getElementById('pinBoxes');
+      boxesWrap.classList.remove('shake');
+      void boxesWrap.offsetWidth; // restart animation
+      boxesWrap.classList.add('shake');
+      document.querySelectorAll('.pin-box').forEach(b => { b.value = ''; });
+      document.querySelector('.pin-box').focus();
+    }
+
+    async function attemptUnlock() {
+      const pin = getEnteredPin();
+      if (pin.length !== 6) {
+        showPinError('Please enter all 6 digits');
+        return;
+      }
+
+      const unlockBtn = document.getElementById('unlockBtn');
+      unlockBtn.disabled = true;
+      unlockBtn.textContent = 'Unlocking...';
 
       try {
-        const response = await fetch(`/api/template/${templateId}`);
-        const data = await response.json();
-
-        if (!data.success) {
-          throw new Error(data.error);
-        }
-
-        const template = data.template;
-        const config = template.templateConfig;
-
-        // Template-specific theming
-        const themes = {
-          'marry-me': {
-            gradient: 'linear-gradient(135deg, #1a0a2e 0%, #2d1050 50%, #6b3a8a 100%)',
-            accent: '#a78bfa'
-          },
-          'sorry': {
-            gradient: 'linear-gradient(135deg, #dce8f5 0%, #b8d4f0 100%)',
-            accent: '#5b8ab5'
-          },
-          'love': {
-            gradient: 'linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%)',
-            accent: '#e91e63'
-          },
-          'will-you-date': {
-            gradient: 'linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e8dff0 100%)',
-            accent: '#ec407a'
-          },
-          'happy-anniversary': {
-            gradient: 'linear-gradient(135deg, #fff8e1 0%, #ffe0b2 50%, #ffcc80 100%)',
-            accent: '#f57c00'
-          },
-          'just-for-you': {
-            gradient: 'linear-gradient(135deg, #f3e5f5 0%, #ede7f6 50%, #d1c4e9 100%)',
-            accent: '#7c4dff'
-          }
-        };
-
-        const theme = themes[template.type] || themes['just-for-you'];
-        const personalities = {
-          'marry-me': '💍',
-          'sorry': '😔',
-          'love': '❤️',
-          'will-you-date': '💕',
-          'happy-anniversary': '🎉',
-          'just-for-you': '✨'
-        };
-
-        const icon = personalities[template.type] || '✨';
-
-        document.body.style.setProperty('--accent-color', theme.accent);
-
-        let mediaHtml = '';
-        if (template.media && template.media.length > 0) {
-          mediaHtml = `<div class="message-media">
-            ${template.media.map(file => {
-              if (file.type === 'image') {
-                return `<div class="message-media-item"><img src="${file.url}" alt="Shared photo" loading="lazy"></div>`;
-              } else if (file.type === 'video') {
-                return `<div class="message-media-item"><video src="${file.url}" controls preload="metadata"></video></div>`;
-              }
-              return '';
-            }).join('')}
-          </div>`;
-        }
-
-        const recipientDisplay = template.recipientName
-          ? `Dear ${escapeHtml(template.recipientName)}`
-          : 'A Special Message';
-
-        const senderDisplay = template.senderName
-          ? `— ${escapeHtml(template.senderName)}`
-          : '';
-
-        messageContent.innerHTML = `
-          <div class="message-container">
-            <div class="message-header" style="background: ${theme.gradient}">
-              <div class="message-header-icon">${icon}</div>
-              <h1 class="message-header-title">${escapeHtml(config.name)}</h1>
-              <p class="message-header-recipient">${escapeHtml(recipientDisplay)}</p>
-            </div>
-            <div class="message-body">
-              <div class="message-quote-box">
-                <p class="message-text">${escapeHtml(template.message)}</p>
-                ${senderDisplay ? `<div class="message-sender">${senderDisplay}</div>` : ''}
-              </div>
-              ${mediaHtml}
-            </div>
-            <div class="message-footer">
-              Made with <a href="/">Writele</a>
-            </div>
-          </div>
-        `;
-
-        loadingScreen.classList.add('hidden');
-        messageContent.classList.remove('hidden');
-
-      } catch (error) {
-        console.error('Error loading template:', error);
-        loadingScreen.classList.add('hidden');
-        errorScreen.classList.remove('hidden');
+        const data = await WritleCrypto.decrypt(pin, currentPayload);
+        stopCountdown();
+        renderMessage(data);
+        transitionToMessage();
+      } catch (err) {
+        showPinError("Incorrect PIN 💔 — that's not the right PIN. Please check and try again.");
+      } finally {
+        unlockBtn.disabled = false;
+        unlockBtn.textContent = 'Unlock';
       }
     }
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
+    function transitionToMessage() {
+      const unlockScreen = document.getElementById('unlockScreen');
+      unlockScreen.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      unlockScreen.style.opacity = '0';
+      unlockScreen.style.transform = 'scale(0.96)';
+      setTimeout(() => {
+        showScreen('messageScreen');
+      }, 350);
     }
+
+    function renderMessage(template) {
+      const theme = THEMES[template.type] || THEMES['just-for-you'];
+      document.body.style.setProperty('--accent-color', theme.accent);
+
+      let mediaHtml = '';
+      if (template.media && template.media.length > 0) {
+        mediaHtml = `<div class="message-media">
+          ${template.media.map(file => {
+            if (file.type === 'image') {
+              return `<div class="message-media-item"><img src="data:${file.mime};base64,${file.data}" alt="Shared photo" loading="lazy"></div>`;
+            }
+            return '';
+          }).join('')}
+        </div>`;
+      }
+
+      const recipientDisplay = template.recipientName
+        ? `Dear ${escapeHtml(template.recipientName)}`
+        : 'A Special Message';
+
+      const senderDisplay = template.senderName
+        ? `— ${escapeHtml(template.senderName)}`
+        : '';
+
+      document.getElementById('messageContainer').innerHTML = `
+        <div class="message-header" style="background: ${theme.gradient}">
+          <div class="message-header-icon">${theme.icon}</div>
+          <h1 class="message-header-title">${escapeHtml(theme.name)}</h1>
+          <p class="message-header-recipient">${escapeHtml(recipientDisplay)}</p>
+        </div>
+        <div class="message-body">
+          <div class="message-quote-box">
+            <p class="message-text">${escapeHtml(template.message)}</p>
+            ${senderDisplay ? `<div class="message-sender">${senderDisplay}</div>` : ''}
+          </div>
+          ${mediaHtml}
+        </div>
+        <div class="message-footer">
+          Made with <a href="/index.html">Writele</a>
+        </div>
+      `;
+    }
+
+    // --- Countdown ---
+    function startCountdown(expiresAt) {
+      const el = document.getElementById('countdown');
+      function tick() {
+        const remainingMs = expiresAt - Date.now();
+        if (remainingMs <= 0) {
+          stopCountdown();
+          showScreen('expiredScreen');
+          return;
+        }
+        const totalSeconds = Math.floor(remainingMs / 1000);
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        el.textContent = `Expires in ${mins}:${secs.toString().padStart(2, '0')}`;
+        el.classList.toggle('low', totalSeconds <= 60);
+      }
+      tick();
+      countdownTimer = setInterval(tick, 1000);
+    }
+
+    function stopCountdown() {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+    }
+
+    // --- Boot ---
+    (function init() {
+      createPetals();
+
+      const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+      const params = new URLSearchParams(hash);
+      const encoded = params.get('d');
+
+      const pathSegment = window.location.pathname.split('/').filter(Boolean).pop() || '';
+      const looksLikeOldUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pathSegment);
+
+      if (!encoded) {
+        showScreen(looksLikeOldUuid ? 'oldLinkScreen' : 'invalidScreen');
+        return;
+      }
+
+      try {
+        currentPayload = WritleCrypto.decodePayload(encoded);
+      } catch (err) {
+        showScreen('invalidScreen');
+        return;
+      }
+
+      if (Date.now() >= currentPayload.e) {
+        showScreen('expiredScreen');
+        return;
+      }
+
+      showScreen('unlockScreen');
+      setupPinBoxes();
+      document.getElementById('unlockBtn').addEventListener('click', attemptUnlock);
+      startCountdown(currentPayload.e);
+    })();
   </script>
 </body>
 </html>

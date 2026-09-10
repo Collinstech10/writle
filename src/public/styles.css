@@ -984,6 +984,93 @@ main {
 }
 
 /* =============================================
+   PIN PROTECTION (creation form)
+   ============================================= */
+.upload-link-note {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.pin-options-group {
+  background: var(--color-surface-warm);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+
+.pin-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+}
+
+.pin-mode-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pin-mode-btn:hover {
+  color: var(--color-text);
+}
+
+.pin-mode-btn.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+.pin-custom-input {
+  margin-top: 14px;
+}
+
+.pin-custom-input input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  letter-spacing: 0.3em;
+  text-align: center;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.pin-custom-input input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.08);
+}
+
+.pin-hint {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.pin-static-hint {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* =============================================
    SUCCESS SECTION
    ============================================= */
 .success-section {
@@ -1121,6 +1208,78 @@ main {
 .btn-create-another:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
+}
+
+.pin-display-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--color-surface-warm);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  margin-bottom: 18px;
+}
+
+.pin-display-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.pin-display-value {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+}
+
+.btn-copy-pin,
+.btn-copy-details {
+  padding: 10px 20px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-copy-pin:hover,
+.btn-copy-details:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-copy.copied,
+.btn-copy-pin.copied,
+.btn-copy-details.copied {
+  background: #27ae60;
+  border-color: #27ae60;
+  color: white;
+}
+
+.expiry-note {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+
+.security-note {
+  margin-top: 28px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 18px;
 }
 
 /* =============================================

@@ -1,16 +1,11 @@
 {
-  "name": "writle",
-  "version": "1.0.0",
-  "description": "Create shareable romantic/apology templates with media",
-  "main": "src/server.js",
+  "name": "writele",
+  "version": "2.0.0",
+  "description": "Frontend-only romantic message creator with PIN-protected, self-expiring share links",
+  "private": true,
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node src/server.js"
-  },
-  "dependencies": {
-    "@vercel/kv": "^3.0.0",
-    "express": "^4.18.2",
-    "multer": "^1.4.5-lts.1"
+    "dev": "npx serve src/public -l 3000",
+    "start": "npx serve src/public -l 3000"
   },
   "engines": {
     "node": ">=18.0.0"

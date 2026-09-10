@@ -123,6 +123,26 @@
                           <input type="file" id="mediaInput" name="media" multiple accept="image/*,video/*" class="hidden" aria-hidden="true">
                         </div>
                         <div class="file-preview" id="filePreview" aria-live="polite"></div>
+                        <p class="upload-link-note" id="uploadLinkNote">Photos are embedded directly in your share link (up to 4, auto-compressed). Videos can be previewed here but can't be included in the link on this frontend-only version.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-step" data-step="4">
+                    <div class="step-label">Step 4</div>
+                    <div class="step-title">Protect Your Message</div>
+                    <div class="step-fields">
+                      <div class="form-group pin-options-group">
+                        <label>PIN Protection</label>
+                        <div class="pin-mode-toggle" role="tablist">
+                          <button type="button" class="pin-mode-btn active" data-mode="auto" role="tab" aria-selected="true">Generate automatically</button>
+                          <button type="button" class="pin-mode-btn" data-mode="custom" role="tab" aria-selected="false">Create my own PIN</button>
+                        </div>
+                        <div class="pin-custom-input hidden" id="customPinWrap">
+                          <input type="text" id="customPin" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit PIN" autocomplete="off">
+                          <p class="pin-hint">Must be exactly 6 digits.</p>
+                        </div>
+                        <p class="pin-static-hint">Your recipient will need this PIN to unlock the message. The link expires 1 hour after you create it.</p>
                       </div>
                     </div>
                   </div>
@@ -161,19 +181,30 @@
         <div class="success-card">
           <div class="success-animation" id="successAnimation">
             <div class="success-icon-wrap">
-              <span class="success-icon">🎉</span>
+              <span class="success-icon">💌</span>
             </div>
           </div>
-          <h2 class="success-title">Your Message is Ready</h2>
+          <h2 class="success-title">Your Message is Ready!</h2>
           <p class="success-subtitle">Share this link with your special someone</p>
+
           <div class="share-link-container">
             <input type="text" id="shareLink" readonly aria-label="Shareable link">
-            <button class="btn-copy" id="copyBtn">Copy</button>
+            <button class="btn-copy" id="copyLinkBtn">Copy Link</button>
           </div>
+
+          <div class="pin-display-block">
+            <span class="pin-display-label">Your PIN</span>
+            <div class="pin-display-value" id="pinDisplayValue">••••••</div>
+            <button class="btn-copy-pin" id="copyPinBtn">Copy PIN</button>
+          </div>
+
+          <p class="expiry-note" id="expiryNote">The link expires in 1 hour.</p>
+
           <div class="share-actions">
+            <button class="btn-copy-details" id="copyDetailsBtn">Copy Link + PIN</button>
             <button class="btn-share-whatsapp" id="whatsappBtn" aria-label="Share on WhatsApp">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-              Share on WhatsApp
+              WhatsApp
             </button>
             <button class="btn-share-native" id="nativeShareBtn" aria-label="Share">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
@@ -181,6 +212,8 @@
             </button>
             <button class="btn-create-another" id="createAnotherBtn">Create Another</button>
           </div>
+
+          <p class="security-note">🔒 Protected with a PIN and encrypted right in your browser. Writele is frontend-only, so this is a lightweight privacy layer — not military-grade security.</p>
         </div>
       </div>
     </section>
@@ -190,6 +223,7 @@
     <p>Crafted with care · Made with <a href="/">Writele</a></p>
   </footer>
 
+  <script src="writle-crypto.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
