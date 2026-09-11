@@ -9,6 +9,10 @@
 </head>
 <body>
 
+  <audio id="siteMusic" autoplay loop preload="metadata" aria-label="Website background love song">
+    <source src="audio/love-song.mp3" type="audio/mpeg">
+  </audio>
+
   <!-- Navigation -->
   <nav class="nav" id="nav">
     <div class="nav-inner">
@@ -112,18 +116,18 @@
                     <div class="step-title">Add Media</div>
                     <div class="step-fields">
                       <div class="form-group">
-                        <label>Photos & Videos <span class="optional">(optional)</span></label>
-                        <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Upload photos and videos">
+                        <label>Photos, Videos & Song <span class="optional">(optional)</span></label>
+                        <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Upload photos, videos, and a song">
                           <div class="upload-area-inner">
                             <div class="upload-icon">📷</div>
                             <p class="upload-primary">Drag and drop files here</p>
                             <p class="upload-secondary">or click to browse</p>
-                            <p class="upload-hint">JPEG, PNG, GIF, MP4, WebM — max 10 files, 50MB each</p>
+                            <p class="upload-hint">Images, videos, MP3, WAV, OGG — max 10 files, 50MB each</p>
                           </div>
-                          <input type="file" id="mediaInput" name="media" multiple accept="image/*,video/*" class="hidden" aria-hidden="true">
+                          <input type="file" id="mediaInput" name="media" multiple accept="image/*,video/*,audio/*" class="hidden" aria-hidden="true">
                         </div>
                         <div class="file-preview" id="filePreview" aria-live="polite"></div>
-                        <p class="upload-link-note" id="uploadLinkNote">Photos are embedded directly in your share link (up to 4, auto-compressed). Videos can be previewed here but can't be included in the link on this frontend-only version.</p>
+                        <p class="upload-link-note" id="uploadLinkNote">Photos are compressed and embedded in your share link. Add one song up to 2MB; it will play behind the message after the PIN is entered. Videos are preview-only.</p>
                       </div>
                     </div>
                   </div>

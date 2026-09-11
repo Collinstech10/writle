@@ -717,6 +717,18 @@ main {
   display: block;
 }
 
+.preview-audio-item {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: var(--color-surface-warm);
+}
+
+.preview-audio-item audio {
+  width: 100%;
+}
+
 .preview-remove {
   position: absolute;
   top: 5px;
@@ -981,6 +993,13 @@ main {
   border-top: 1px solid var(--color-border-light);
   font-size: 0.72rem;
   color: var(--color-text-muted);
+}
+
+.preview-song {
+  margin-top: 12px;
+  color: var(--color-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 /* =============================================

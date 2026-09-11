@@ -376,6 +376,29 @@
       transform: scale(1.02);
     }
 
+    .message-music {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding: 14px 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-warm);
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+
+    .message-music-icon {
+      color: var(--accent-color, #c0392b);
+      font-size: 1.4rem;
+    }
+
+    .message-music audio {
+      width: 100%;
+      height: 36px;
+    }
+
     .message-media-item img,
     .message-media-item video {
       width: 100%;
@@ -642,6 +665,10 @@
       document.body.style.setProperty('--accent-color', theme.accent);
 
       let mediaHtml = '';
+      const audio = template.media && template.media.find(file => file.type === 'audio');
+      const musicHtml = audio
+        ? `<div class="message-music"><span class="message-music-icon">♫</span><span>Playing a song for you</span><audio id="messageAudio" controls loop autoplay src="data:${audio.mime};base64,${audio.data}"></audio></div>`
+        : '';
       if (template.media && template.media.length > 0) {
         mediaHtml = `<div class="message-media">
           ${template.media.map(file => {
@@ -668,6 +695,7 @@
           <p class="message-header-recipient">${escapeHtml(recipientDisplay)}</p>
         </div>
         <div class="message-body">
+          ${musicHtml}
           <div class="message-quote-box">
             <p class="message-text">${escapeHtml(template.message)}</p>
             ${senderDisplay ? `<div class="message-sender">${senderDisplay}</div>` : ''}
@@ -678,6 +706,9 @@
           Made with <a href="./">Writele</a>
         </div>
       `;
+
+      const messageAudio = document.getElementById('messageAudio');
+      if (messageAudio) messageAudio.play().catch(() => {});
     }
 
     // --- Countdown ---

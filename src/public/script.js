@@ -29,6 +29,7 @@ const TEMPLATE_TYPES = {
 const MAX_LINK_PHOTOS = 4;
 const PHOTO_MAX_DIMENSION = 1000;
 const PHOTO_JPEG_QUALITY = 0.65;
+const MAX_LINK_AUDIO_BYTES = 2 * 1024 * 1024;
 const LINK_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 
 // --- Template Config (client-side personalities) ---
@@ -97,9 +98,26 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTemplateTypes();
   setupEventListeners();
   setupButtonListeners();
+  setupSiteMusic();
   initThemeSystem();
   createPetals();
 });
+
+function setupSiteMusic() {
+  const audio = document.getElementById('siteMusic');
+  if (!audio) return;
+
+  const startMusic = () => {
+    audio.play().catch(() => {
+      // Browsers may require a user gesture before allowing audible autoplay.
+    });
+  };
+
+  startMusic();
+  ['pointerdown', 'keydown', 'touchstart'].forEach(eventName => {
+    document.addEventListener(eventName, startMusic, { once: true, passive: true });
+  });
+}
 
 // =============================================
 // THEME SYSTEM
@@ -410,7 +428,7 @@ function handleFiles(files) {
     return;
   }
 
-  const allowedTypes = /jpeg|jpg|png|gif|mp4|webm|ogg|mov|avi|wmv|flv|mkv/;
+  const allowedTypes = /jpeg|jpg|png|gif|mp4|webm|ogg|mov|avi|wmv|flv|mkv|mp3|wav|m4a|aac/;
   const invalidFiles = fileArray.filter(file => {
     const ext = allowedTypes.test(file.name.split('.').pop().toLowerCase());
     const mime = allowedTypes.test(file.type);
@@ -418,7 +436,17 @@ function handleFiles(files) {
   });
 
   if (invalidFiles.length > 0) {
-    showToast('Only image and video files are allowed');
+    showToast('Only image, video, and audio files are allowed');
+    return;
+  }
+
+  if (fileArray.some(file => file.type.startsWith('audio/')) && selectedFiles.some(file => file.type.startsWith('audio/'))) {
+    showToast('Please choose one song per message');
+    return;
+  }
+
+  if (fileArray.some(file => file.type.startsWith('audio/') && file.size > MAX_LINK_AUDIO_BYTES)) {
+    showToast('Your song must be 2MB or smaller to fit in the share link');
     return;
   }
 
@@ -451,6 +479,14 @@ function updateFilePreview() {
       video.preload = 'metadata';
       item.appendChild(video);
       objectUrls.push(video.src);
+    } else if (file.type.startsWith('audio/')) {
+      const audio = document.createElement('audio');
+      audio.src = URL.createObjectURL(file);
+      audio.controls = true;
+      audio.preload = 'metadata';
+      item.classList.add('preview-audio-item');
+      item.appendChild(audio);
+      objectUrls.push(audio.src);
     }
 
     const removeBtn = document.createElement('button');
@@ -534,6 +570,7 @@ function updatePreview() {
   const recipientName = (document.getElementById('recipientName')?.value || '').trim();
   const senderName = (document.getElementById('senderName')?.value || '').trim();
   const message = document.getElementById('message')?.value || '';
+  const song = selectedFiles.find(file => file.type.startsWith('audio/'));
 
   const displayMedia = selectedFiles.slice(0, 4);
 
@@ -559,6 +596,7 @@ function updatePreview() {
             }).join('')}
           </div>
         ` : ''}
+        ${song ? '<div class="preview-song">♫ Background song selected</div>' : ''}
       </div>
       <div class="preview-footer">Made with Writele</div>
     </div>
@@ -651,9 +689,8 @@ async function handleFormSubmit(e) {
   }
 }
 
-// Converts up to MAX_LINK_PHOTOS selected images into compressed, embeddable
-// base64 payloads. Videos are intentionally skipped — there is no server to
-// store them, and a raw video is far too large to live inside a URL.
+// Converts selected images and one small audio file into embeddable payloads.
+// Videos are intentionally skipped because raw video is too large for a URL.
 async function buildMediaPayload(files) {
   const images = files.filter(f => f.type.startsWith('image/')).slice(0, MAX_LINK_PHOTOS);
   const results = [];
@@ -665,7 +702,24 @@ async function buildMediaPayload(files) {
       console.error('Failed to process image', file.name, err);
     }
   }
+  const audio = files.find(file => file.type.startsWith('audio/'));
+  if (audio && audio.size <= MAX_LINK_AUDIO_BYTES) {
+    try {
+      results.push({ type: 'audio', mime: audio.type || 'audio/mpeg', data: await readFileAsBase64(audio) });
+    } catch (err) {
+      console.error('Failed to process audio', audio.name, err);
+    }
+  }
   return results;
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = () => reject(reader.error || new Error('Could not read audio'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function compressImageToBase64(file, maxDimension, quality) {
