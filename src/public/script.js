@@ -635,7 +635,7 @@ async function handleFormSubmit(e) {
 
     const expiresAt = Date.now() + LINK_EXPIRY_MS;
     const encoded = await WritleCrypto.encrypt(pin, dataObj, expiresAt);
-    const shareUrl = `${window.location.origin}/view.html#d=${encoded}`;
+    const shareUrl = new URL('view.html', window.location.href).toString() + `#d=${encoded}`;
 
     if (encoded.length > 400000) {
       showToast('Your link is quite large — consider fewer photos for easier sharing');

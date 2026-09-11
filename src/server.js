@@ -3,7 +3,24 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { kv } = require('@vercel/kv');
+
+const memoryStore = new Map();
+let kv;
+
+try {
+  ({ kv } = require('@vercel/kv'));
+} catch (error) {
+  console.warn('Vercel KV not configured; using in-memory fallback for local development.');
+  kv = {
+    async get(key) {
+      return memoryStore.has(key) ? memoryStore.get(key) : null;
+    },
+    async set(key, value) {
+      memoryStore.set(key, value);
+      return value;
+    }
+  };
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;

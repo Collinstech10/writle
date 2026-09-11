@@ -123,6 +123,8 @@
       justify-content: center;
       gap: 10px;
       margin-bottom: 20px;
+      animation: pinPanelFloat 3.2s ease-in-out infinite;
+      transform-origin: center;
     }
 
     .pin-box {
@@ -136,17 +138,36 @@
       font-weight: 600;
       color: var(--text-primary);
       font-family: 'Inter', sans-serif;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      animation: pinBoxPop 0.25s ease;
+    }
+
+    .pin-box.filled {
+      border-color: var(--accent-color, #c0392b);
+      background: rgba(192, 57, 43, 0.05);
+      box-shadow: 0 10px 24px rgba(192, 57, 43, 0.08);
+      transform: translateY(-2px);
     }
 
     .pin-box:focus {
       outline: none;
       border-color: var(--accent-color, #c0392b);
-      box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12);
+      box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12), 0 10px 28px rgba(192, 57, 43, 0.12);
+      transform: translateY(-2px);
     }
 
     .pin-boxes.shake {
       animation: pinShake 0.4s ease;
+    }
+
+    @keyframes pinPanelFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes pinBoxPop {
+      0% { transform: scale(0.82); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     @keyframes pinShake {
@@ -181,6 +202,11 @@
       box-shadow: 0 6px 25px rgba(192, 57, 43, 0.25);
     }
 
+    .btn-unlock.ready {
+      animation: unlockPulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.38), 0 10px 35px rgba(192, 57, 43, 0.35);
+    }
+
     .btn-unlock:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 35px rgba(192, 57, 43, 0.35);
@@ -190,6 +216,18 @@
       opacity: 0.6;
       cursor: default;
       transform: none;
+      animation: none;
+    }
+
+    @keyframes unlockPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.22), 0 10px 35px rgba(192, 57, 43, 0.35);
+      }
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 0 10px rgba(192, 57, 43, 0), 0 14px 40px rgba(192, 57, 43, 0.45);
+      }
     }
 
     .countdown {
@@ -496,10 +534,17 @@
       boxes.forEach((box, index) => {
         box.addEventListener('input', () => {
           box.value = box.value.replace(/\D/g, '').slice(0, 1);
+          box.classList.toggle('filled', !!box.value);
           if (box.value && index < boxes.length - 1) {
             boxes[index + 1].focus();
           }
           clearPinError();
+          updateUnlockButtonState();
+        });
+
+        box.addEventListener('blur', () => {
+          box.classList.toggle('filled', !!box.value);
+          updateUnlockButtonState();
         });
 
         box.addEventListener('keydown', (e) => {
@@ -529,17 +574,32 @@
       return Array.from(document.querySelectorAll('.pin-box')).map(b => b.value).join('');
     }
 
+    function updateUnlockButtonState() {
+      const pin = getEnteredPin();
+      const unlockBtn = document.getElementById('unlockBtn');
+      if (!unlockBtn) return;
+      const isReady = pin.length === 6;
+      unlockBtn.classList.toggle('ready', isReady);
+      unlockBtn.title = isReady ? 'Ready to unlock' : 'Enter all 6 digits';
+    }
+
     function clearPinError() {
       document.getElementById('pinError').textContent = '';
+      updateUnlockButtonState();
     }
 
     function showPinError(message) {
       document.getElementById('pinError').textContent = message;
       const boxesWrap = document.getElementById('pinBoxes');
       boxesWrap.classList.remove('shake');
-      void boxesWrap.offsetWidth; // restart animation
+      void boxesWrap.offsetWidth;
       boxesWrap.classList.add('shake');
-      document.querySelectorAll('.pin-box').forEach(b => { b.value = ''; });
+      document.querySelectorAll('.pin-box').forEach(b => {
+        b.value = '';
+        b.classList.remove('filled');
+      });
+      const unlockBtn = document.getElementById('unlockBtn');
+      if (unlockBtn) unlockBtn.classList.remove('ready');
       document.querySelector('.pin-box').focus();
     }
 
@@ -615,7 +675,7 @@
           ${mediaHtml}
         </div>
         <div class="message-footer">
-          Made with <a href="/index.html">Writele</a>
+          Made with <a href="./">Writele</a>
         </div>
       `;
     }
